@@ -743,21 +743,25 @@ void deque_filter_callback(Deque *deque, zval *obj, FCI_PARAMS)
         return;
 
     } else {
-        zval param;
         zval retval;
+        int result;
 
-        zval *src;
+        zval *value;
         zval *ptr = ALLOC_ZVAL_BUFFER(deque->capacity);
         zval *pos = ptr;
 
-        DEQUE_FOREACH(deque, src) {
-            ZVAL_COPY_VALUE(&param, src);
-            fci.param_count = 1;
-            fci.params      = &param;
-            fci.retval      = &retval;
+        DEQUE_FOREACH(deque, value) {
+
+            // Setup FCI
+            zend_fcall_info_argn(&fci, 1, value);
+            fci.retval = &retval;
+
+            // Call function and clear FCI
+            result = zend_call_function(&fci, &fci_cache);
+            zend_fcall_info_args_clear(&fci, 1);
 
             // Catch potential exceptions or other errors during comparison.
-            if (zend_call_function(&fci, &fci_cache) == FAILURE) {
+            if (result == FAILURE || Z_ISUNDEF(retval)) {
                 efree(ptr);
                 ZVAL_UNDEF(obj);
                 return;
@@ -765,7 +769,7 @@ void deque_filter_callback(Deque *deque, zval *obj, FCI_PARAMS)
 
             // Only push if the value is not falsey.
             if (zend_is_true(&retval)) {
-                ZVAL_COPY(pos++, src);
+                ZVAL_COPY(pos++, value);
             }
         }
         DEQUE_FOREACH_END();
