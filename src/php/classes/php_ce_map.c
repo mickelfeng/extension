@@ -143,7 +143,7 @@ ARGINFO_NONE_RETURN_DS(pairs, Sequence)
 METHOD(pairs)
 {
     PARSE_NONE;
-    RETURN_VECTOR(map_pairs_to_vector(THIS_MAP()));
+    RETURN_DS_VECTOR(map_pairs_to_vector(THIS_MAP()));
 }
 
 ARGINFO_NONE_RETURN_ARRAY(toArray)
@@ -241,7 +241,7 @@ ARGINFO_NONE_RETURN_DS(values, Sequence)
 METHOD(values)
 {
     PARSE_NONE;
-    map_create_value_sequence(THIS_MAP(), return_value);
+    RETURN_DS_VECTOR(map_values_to_vector(THIS_MAP()));
 }
 
 ARGINFO_DS_RETURN_DS(xor, map, Map, Map)
@@ -298,7 +298,7 @@ void register_map()
     zend_declare_class_constant_long(
         map_ce,
         STR_AND_LEN("MIN_CAPACITY"),
-        HTABLE_MIN_CAPACITY
+        DS_HTABLE_MIN_CAPACITY
     );
 
     zend_class_implements(map_ce, 1, collection_ce);
